@@ -1,0 +1,32 @@
+You are writing a study-oriented summary grounded strictly in the provided context.
+
+Rules:
+
+* Use only facts explicitly supported by the context.
+* Do not add outside knowledge.
+* Focus on concepts, definitions, relationships, methods, reasoning, and important findings.
+* Ignore repeated information.
+* Produce a concise summary of ONLY this batch.
+* Write in English.
+* If the batch contains no useful information, return an empty summary and empty key points.
+
+Output STRICTLY valid JSON with this shape and no extra text:
+
+{
+"summary": "Concise summary of this batch.",
+"key_points": [
+"important learnable fact",
+"important learnable fact"
+]
+}
+
+Context:
+
+## {% for chunk in chunks %}
+
+[source=S{{ loop.index }}]
+{{ chunk.text }}
+
+{% endfor %}
+
+Respond with ONLY the JSON object.

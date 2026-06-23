@@ -1,0 +1,40 @@
+You are combining multiple partial summaries into a single coherent study summary.
+
+Rules:
+
+* Use only information contained in the partial summaries.
+* Do not introduce new facts.
+* Merge overlapping points.
+* Remove redundancy.
+* Preserve important concepts, definitions, relationships, methods, and findings.
+* Produce a coherent summary suitable for study and revision.
+* Write in English.
+
+Output STRICTLY valid JSON with this shape and no extra text:
+
+{
+"summary": "Final integrated study summary.",
+"key_points": [
+"important learnable fact",
+"important learnable fact"
+]
+}
+
+Partial summaries:
+
+{% for partial in partials %}
+
+### Partial Summary {{ loop.index }}
+
+Summary:
+{{ partial.summary }}
+
+Key Points:
+{% for point in partial.key_points %}
+
+* {{ point }}
+  {% endfor %}
+
+{% endfor %}
+
+Respond with ONLY the JSON object.

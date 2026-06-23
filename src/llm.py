@@ -1,0 +1,61 @@
+import torch
+from langchain_huggingface import ChatHuggingFace, HuggingFacePipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.messages import HumanMessage
+from loguru import logger
+from src.config import get_settings
+from langchain_openai import ChatOpenAI
+
+settings = get_settings()
+
+def _build_hf_local():
+    logger.info(f"Loading local model: {settings.hf_model}...")
+    tokenizer = AutoTokenizer.from_pretrained(settings.hf_model)
+    model = AutoModelForCausalLM.from_pretrained(
+        settings.hf_model,
+        torch_dtype=torch.bfloat16,
+        device_map="auto",
+    )
+
+    text_gen_pipeline = pipeline(
+        task="text-generation",
+        model=model,
+        tokenizer=tokenizer,
+        max_new_tokens=settings.hf_max_new_tokens,
+        do_sample=settings.llm_temperature > 0,
+        temperature=settings.llm_temperature,
+        return_full_text=False,
+    )
+
+    llm = HuggingFacePipeline(pipeline=text_gen_pipeline)
+    return ChatHuggingFace(llm=llm)
+
+def _build_gemini():
+    return ChatGoogleGenerativeAI(
+        model=settings.gemini_model,
+        temperature=settings.llm_temperature,
+    )
+
+def _build_vllm():
+    return ChatOpenAI(
+        model=settings.hf_model,
+        api_key=settings.vllm_api_key,
+        base_url=settings.vllm_api_base,
+        temperature=settings.llm_temperature,
+    )
+    
+def get_llm():
+    provider = settings.llm_provider
+    if provider == "hf_local":
+        return _build_hf_local()
+    elif provider == "gemini":
+        return _build_gemini()
+    elif provider == "vllm":
+        return _build_vllm()
+    else:
+        raise ValueError(f"Provider {provider} is not supported.")
+    
+def invoke_llm(prompt):
+    response = get_llm().invoke([HumanMessage(content=prompt)])
+    return response.content if isinstance(response.content, str) else str(response.content)
