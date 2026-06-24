@@ -9,23 +9,28 @@ from langchain_openai import ChatOpenAI
 from llama_cpp import Llama
 
 settings = get_settings()
+from huggingface_hub import hf_hub_download
+
 def _build_llamacpp():
+    repo_id = settings.hf_model
     quant = settings.hf_quantization
 
-    model_path = (
-        settings.gguf_dir /
-        settings.hf_model /
-        f"{quant}.gguf"
+    model_name = repo_id.split("/")[-1].replace("-GGUF", "")
+
+    filename = f"{model_name}-UD-{quant}.gguf"
+
+    model_path = hf_hub_download(
+        repo_id=repo_id,
+        filename=filename,
     )
 
-    llm = Llama(
-        model_path=str(model_path),
+    return Llama(
+        model_path=model_path,
         n_ctx=8192,
         n_gpu_layers=-1,
         verbose=False,
     )
 
-    return llm
 def _build_hf_local():
     logger.info(f"Loading local model: {settings.hf_model}...")
     tokenizer = AutoTokenizer.from_pretrained(settings.hf_model)
