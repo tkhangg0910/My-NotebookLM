@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     llm_temperature: float = Field(default=0.1, ge=0.0, le=2.0)
     
     hf_model: str = "Qwen/Qwen3-4B-Instruct-2507"
-    hf_device: int = 1
+    hf_device: int = 0
     hf_max_new_tokens: int = Field(default=2048, ge=1)
     
     gemini_model: str = "gemini-2.5-flash"
