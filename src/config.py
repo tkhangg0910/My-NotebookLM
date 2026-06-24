@@ -3,6 +3,20 @@ from pathlib import Path
 from pydantic import Field, model_validator
 from typing import Literal
 from functools import lru_cache
+QuantizationType = Literal[
+    "none",
+    "IQ2_M",
+    "IQ3_M",
+    "Q3_K_S",
+    "Q3_K_M",
+    "Q3_K_L",
+    "Q3_K_XL",
+    "Q4_0",
+    "Q4_K_M",
+    "Q5_0",
+    "Q5_K_M",
+    "Q8_0",
+]
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="RAG_", extra="ignore")
@@ -16,13 +30,15 @@ class Settings(BaseSettings):
     
     embedding_model: str = "GreenNode/GreenNode-Embedding-Large-VN-Mixed-V1"
     
-    llm_provider: Literal["hf_local", "gemini", "vllm"] = "hf_local"
+    llm_provider: Literal["hf_local", "gemini", "vllm","llamacpp"] = "hf_local"
     llm_temperature: float = Field(default=0.1, ge=0.0, le=2.0)
     
     hf_model: str = "Qwen/Qwen3-4B-Instruct-2507"
     hf_device: int = 0
     hf_max_new_tokens: int = Field(default=2048, ge=1)
-    
+    hf_quantization: QuantizationType = "none"
+    gguf_dir: Path = Path("models")
+
     gemini_model: str = "gemini-2.5-flash"
     google_api_key: str | None = Field(default=None, validation_alias="GOOGLE_API_KEY")
     vllm_api_base: str = "http://localhost:8001/v1"
