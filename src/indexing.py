@@ -3,10 +3,10 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from src.config import get_settings
 from collections import defaultdict
-from schemas import ChunkMetadata
+from src.schemas import ChunkMetadata
 import uuid
 from pathlib import Path
-from store import get_vector_store, ensure_collection
+from src.store import get_vector_store, ensure_collection
 
 settings = get_settings()
 
