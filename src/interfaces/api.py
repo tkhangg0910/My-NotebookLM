@@ -22,10 +22,8 @@ from pydantic import BaseModel, Field
 from pydantic import BaseModel
 
 class UploadResponse(BaseModel):
-    document_id: str
     filename: str
-    chunks: int
-    message: str
+    chunks_indexed: int
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=1)
