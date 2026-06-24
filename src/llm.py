@@ -34,6 +34,7 @@ def _build_hf_local():
 def _build_gemini():
     return ChatGoogleGenerativeAI(
         model=settings.gemini_model,
+        google_api_key=settings.google_api_key,
         temperature=settings.llm_temperature,
     )
 
