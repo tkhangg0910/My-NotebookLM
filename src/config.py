@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     hf_device: int = 0
     hf_max_new_tokens: int = Field(default=2048, ge=1)
     hf_quantization: QuantizationType = "none"
-    gguf_dir: Path = Path("models")
+    gguf_model_path: Path | None = None
 
     gemini_model: str = "gemini-2.5-flash"
     google_api_key: str | None = Field(default=None, validation_alias="GOOGLE_API_KEY")

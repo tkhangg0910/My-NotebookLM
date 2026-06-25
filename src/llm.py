@@ -12,18 +12,12 @@ settings = get_settings()
 from huggingface_hub import hf_hub_download
 
 def _build_llamacpp():
-    repo_id = settings.hf_model
-    quant = settings.hf_quantization
-
-    model_name = repo_id.split("/")[-1].replace("-GGUF", "")
-
-    filename = f"{model_name}-UD-{quant}.gguf"
-
-    model_path = hf_hub_download(
-        repo_id=repo_id,
-        filename=filename,
-    )
-
+    if settings.gguf_model_path:
+        model_path = str(settings.gguf_model_path)
+    else:
+        raise ValueError(
+            "gguf_model_path is required when llm_provider='llamacpp'"
+        )
     return Llama(
         model_path=model_path,
         n_ctx=8192,
