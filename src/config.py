@@ -26,10 +26,13 @@ class Settings(BaseSettings):
     qdrant_collection: str = "rag_chunks"
     chunk_size: int = Field(default=1000, ge=100)
     chunk_overlap: int = Field(default=150, ge=0)
+    chunker_type: Literal["recursive", "semantic"] = "recursive"
     top_k: int = Field(default=5, ge=1, le=64)
-    
+    top_c: int = Field(default=20, ge=1, le=64)
+
     embedding_model: str = "GreenNode/GreenNode-Embedding-Large-VN-Mixed-V1"
-    
+    reranker_model: str = "BAAI/bge-reranker-base"
+
     llm_provider: Literal["hf_local", "gemini", "vllm","llamacpp"] = "hf_local"
     llm_temperature: float = Field(default=0.1, ge=0.0, le=2.0)
     

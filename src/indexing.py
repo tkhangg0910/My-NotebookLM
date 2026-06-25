@@ -7,6 +7,8 @@ from src.schemas import ChunkMetadata
 import uuid
 from pathlib import Path
 from src.store import get_vector_store, ensure_collection
+from langchain_experimental.text_splitter import SemanticChunker
+from src.store import get_embeddings
 
 settings = get_settings()
 
@@ -43,13 +45,19 @@ def _splitter(chunk_size=None, chunk_overlap=None):
         separators=["\n\n", "\n", ". ", " ", ""],
         keep_separator=False,
     )
+
+def semantic_chunker():
+    return SemanticChunker(
+        embeddings=get_embeddings(),
+        breakpoint_threshold_type="interquartile",
+    )
     
 def build_chunks(pdf_paths, chunk_size=None, chunk_overlap=None, chunker=None):
     page_docs = []
     for path in pdf_paths:
         page_docs.extend(_load_pdf(path))
-        
-    splitter = chunker or _splitter(chunk_size, chunk_overlap)
+    default_chunker = semantic_chunker() if settings.chunker_type=="semantic" else _splitter(chunk_size, chunk_overlap) 
+    splitter = chunker or default_chunker
     chunks = splitter.split_documents(page_docs)
     per_doc_counter = defaultdict(int)
     

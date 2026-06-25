@@ -6,6 +6,7 @@ from src.llm import invoke_llm
 from src.store import get_client
 from functools import lru_cache
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from src.reranker import get_reranker
 
 PROMPTS_DIR = "src/prompts"
 ANSWER_TEMPLATE = "answer.j2"
@@ -38,11 +39,32 @@ settings=get_settings()
 def retrieve(query, k=None, filters=None, collection_name=None):
     hits = get_vector_store(collection_name).similarity_search_with_score(
         query=query,
-        k=k or settings.top_k,
+        k=settings.top_c,
         filter=filters_to_qdrant(filters),
     )
-    return [RetrievedChunk(text=doc.page_content, score=float(score), metadata=ChunkMetadata(**doc.metadata))
-            for doc, score in hits]
+    
+    pairs = [
+    (query, doc.page_content)
+    for doc, _ in hits
+    ]
+
+    scores = get_reranker().predict(pairs)
+
+    reranked = sorted(
+        zip(hits, scores),
+        key=lambda x: x[1],
+        reverse=True
+    )
+    k = k if k else settings.top_k
+    reranked = reranked[:k]
+    return [
+        RetrievedChunk(
+            text=doc.page_content,
+            score=float(score),
+            metadata=ChunkMetadata(**doc.metadata),
+        )
+        for (doc, _), score in reranked
+    ]
     
 def fetch_all_chunks(filters=None, collection_name=None):
     name = collection_name or settings.qdrant_collection
