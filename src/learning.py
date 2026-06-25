@@ -229,7 +229,7 @@ def generate_flashcards(document=None, query=None, filters=None, count=None, k=N
     chunks, scope, target = _resolve_target(
         document, query, filters, k, settings.generation_retrieval_k
     )
-    n = count or settings.quiz_default_count
+    n = count or settings.flashcards_default_count
     valid_markers = {f"S{i}" for i in range(1, len(chunks) + 1)}
     prompt = render_prompt(FLASHCARDS_TEMPLATE, chunks=chunks, count=n)
     payload = _parse_json(invoke_llm(prompt))

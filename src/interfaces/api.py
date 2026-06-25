@@ -102,20 +102,35 @@ def summarize(req: SummarizeRequest):
 
 @app.post("/quiz", response_model=QuizSet)
 def quiz(req: QuizRequest):
-    return generate_quiz(
+    quiz_res = generate_quiz(
         document=req.document,
         query=req.query,
         filters=filters_to_dict(req.filters),
         count=req.count,
         k=req.k,
     )
+    for idx, q in enumerate(quiz_res.items, 1):
+        print(f"Question {idx}: {q.question}")
+        for i, opt in enumerate(q.options):
+            print(f"  {chr(65+i)}: {opt}")
+        print(f"=> Correct Answer: {chr(65+q.correct_index)}")
+        print(f"=> Explanation: {q.explanation}")
+        print("-" * 30)
+
 
 @app.post("/flashcard", response_model=FlashcardSet)
 def flashcard(req: FlashcardsRequest):
-    return generate_flashcards(
+    flash_res = generate_flashcards(
         document=req.document,
         query=req.query,
         filters=filters_to_dict(req.filters),
         count=req.count,
         k=req.k,
     )
+    for idx, card in enumerate(flash_res.cards, 1):
+        print(f"Card {idx}:")
+        print(f"  Front (Question): {card.front}")
+        print(f"  Back (Answer)   : {card.back}")
+        if card.hint:
+            print(f"  Hint            : {card.hint}")
+        print("-" * 30)
