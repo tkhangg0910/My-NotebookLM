@@ -12,6 +12,18 @@ API_URL = settings.api_url
 def pretty(data):
     typer.echo(json.dumps(data, indent=2, ensure_ascii=False))
 
+@app.command()
+def reindex_images():
+    r = requests.post(
+        f"{API_URL}/reindex-images"
+    )
+
+    typer.echo(
+        json.dumps(
+            r.json(),
+            indent=2,
+        )
+    )
 
 @app.command()
 def upload(pdf: str):

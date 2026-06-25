@@ -52,3 +52,57 @@ def ensure_collection(recreate=False, collection_name=None):
             if payload_schema.get(field) is None:
                 client.create_payload_index(name, field_name=field, field_schema=schema)
                 
+IMAGE_INDEXED_PAYLOAD_FIELDS = {
+    "document_id": qmodels.PayloadSchemaType.KEYWORD,
+    "filename": qmodels.PayloadSchemaType.KEYWORD,
+    "page": qmodels.PayloadSchemaType.INTEGER,
+}
+def ensure_image_collection(
+    recreate=False,
+    collection_name=None,
+):
+    client = get_client()
+
+    name = (
+        collection_name
+        or settings.image_collection
+    )
+
+    exists = client.collection_exists(name)
+
+    if exists and recreate:
+        client.delete_collection(name)
+        exists = False
+
+    if exists:
+        return
+
+    client.create_collection(
+        collection_name=name,
+        vectors_config={
+            "original": qmodels.VectorParams(
+                size=128,
+                distance=qmodels.Distance.COSINE,
+                multivector_config=qmodels.MultiVectorConfig(
+                    comparator=qmodels.MultiVectorComparator.MAX_SIM
+                ),
+                hnsw_config=qmodels.HnswConfigDiff(
+                    m=0,
+                ),
+            ),
+        },
+    )
+
+    payload_schema = (
+        client.get_collection(name)
+        .payload_schema
+        or {}
+    )
+
+    for field, schema in IMAGE_INDEXED_PAYLOAD_FIELDS.items():
+        if payload_schema.get(field) is None:
+            client.create_payload_index(
+                collection_name=name,
+                field_name=field,
+                field_schema=schema,
+            )

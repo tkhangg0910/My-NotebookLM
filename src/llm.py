@@ -74,8 +74,10 @@ def get_llm():
         return _build_llamacpp()
     else:
         raise ValueError(f"Provider {provider} is not supported.")
-    
-def invoke_llm(prompt):
+
+
+
+def invoke_llm(prompt, image_paths=None):
     if settings.llm_provider == "llamacpp":
         llm = get_llm()
 
@@ -89,6 +91,18 @@ def invoke_llm(prompt):
         )
 
         return output["choices"][0]["message"]["content"]
-
-    response = get_llm().invoke([HumanMessage(content=prompt)])
+    
+    content = [{"type": "text", "text": prompt}]
+    if image_paths:
+        for path in image_paths:
+            content.append(
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"file://{path}"
+                    }
+                }
+            )
+    message = HumanMessage(content=content)
+    response = get_llm().invoke([message])
     return response.content if isinstance(response.content, str) else str(response.content)

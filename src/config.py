@@ -20,10 +20,13 @@ QuantizationType = Literal[
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="RAG_", extra="ignore")
-    
+    rag_mode: Literal["text_only", "text_vl", "hybrid"] = "text_only"
     data_dir: Path = Path("data")
     storage_dir: Path = Path("storage/qdrant")
+    image_dir: Path = Path("storage/images")
+
     qdrant_collection: str = "rag_chunks"
+    image_collection: str = "rag_images"
     chunk_size: int = Field(default=1000, ge=100)
     chunk_overlap: int = Field(default=150, ge=0)
     chunker_type: Literal["recursive", "semantic"] = "recursive"
@@ -37,6 +40,7 @@ class Settings(BaseSettings):
     llm_temperature: float = Field(default=0.1, ge=0.0, le=2.0)
     
     hf_model: str = "Qwen/Qwen3-4B-Instruct-2507"
+    vision_model: str = "vidore/colqwen2-v1.0"
     hf_device: int = 0
     hf_max_new_tokens: int = Field(default=2048, ge=1)
     hf_quantization: QuantizationType = "none"
@@ -70,6 +74,7 @@ def get_settings()-> Settings:
     settings = Settings()
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     settings.storage_dir.mkdir(parents=True, exist_ok=True)
+    settings.image_dir.mkdir(parents=True, exist_ok=True)
     return settings
 
 settings = get_settings()

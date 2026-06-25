@@ -15,7 +15,7 @@ from src.schemas import (
     FlashcardSet,
 )
 
-from src.indexing import save_and_ingest_pdf
+from src.indexing import save_and_ingest_pdf, reindex_images
 
 from pydantic import BaseModel, Field
 
@@ -79,6 +79,11 @@ async def upload(file: UploadFile = File(...)):
         file.filename or "",
     )
 
+@app.post("/reindex-images")
+def reindex_images_endpoint():
+    return reindex_images(
+        recreate=True
+    )
 
 @app.post("/ask", response_model=RagAnswer)
 def ask(req: AskRequest):

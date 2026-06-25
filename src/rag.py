@@ -3,7 +3,7 @@ from src.indexing import get_vector_store
 from src.config import get_settings
 from src.filters import filters_to_qdrant
 from src.llm import invoke_llm
-from src.store import get_client
+from src.store import get_client, ensure_image_collection
 from functools import lru_cache
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from src.reranker import get_reranker
@@ -35,7 +35,36 @@ def scroll_all(collection_name, scroll_filter=None, batch_size=1000):
 
 
 settings=get_settings()
+from src.vision import embed_query
 
+def retrieve_images(
+    query,
+    k=3,
+):
+    client = get_client()
+    
+    query_emb = embed_query(query)
+
+    result = client.query_points(
+        collection_name=settings.image_collection,
+        query=query_emb.tolist(),
+        using="original",
+        limit=k,
+        with_payload=True,
+    )
+
+    return result.points
+
+def images_from_chunks(chunks):
+    images = []
+
+    for chunk in chunks:
+        image = chunk.metadata.page_image
+
+        if image:
+            images.append(image)
+
+    return list(dict.fromkeys(images))
 def retrieve(query, k=None, filters=None, collection_name=None):
     hits = get_vector_store(collection_name).similarity_search_with_score(
         query=query,
@@ -64,6 +93,20 @@ def retrieve(query, k=None, filters=None, collection_name=None):
             metadata=ChunkMetadata(**doc.metadata),
         )
         for (doc, _), score in reranked
+    ]
+    
+def images_from_colqwen(
+    question,
+    k=3,
+):
+    hits = retrieve_images(
+        question,
+        k=k,
+    )
+
+    return [
+        hit.payload["image_path"]
+        for hit in hits
     ]
     
 def fetch_all_chunks(filters=None, collection_name=None):
@@ -108,9 +151,31 @@ def format_citations(chunks):
         for i, c in enumerate(chunks, start=1)
     ]
     
+def get_image_context(
+    question,
+    chunks,
+):
+    if settings.rag_mode == "text_only":
+        return []
+
+    if settings.rag_mode == "text_vl":
+        return images_from_chunks(
+            chunks
+        )
+
+    if settings.rag_mode == "hybrid":
+        return images_from_colqwen(
+            question
+        )
+
+    return []
 
 def answer(question, k=None, filters=None, collection_name=None):
     chunks = retrieve(question, k=k, filters=filters, collection_name=collection_name)
+    image_paths = get_image_context(
+        question,
+        chunks,
+    )
     if not chunks:
         return RagAnswer(
             question=question,
@@ -118,7 +183,10 @@ def answer(question, k=None, filters=None, collection_name=None):
         )
 
     prompt = render_prompt(ANSWER_TEMPLATE, question=question, chunks=chunks)
-    text = invoke_llm(prompt)
+    text = invoke_llm(
+        prompt,
+        image_paths=image_paths,
+    )
     return RagAnswer(
         question=question,
         answer=text.strip(),
