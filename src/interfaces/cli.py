@@ -91,15 +91,13 @@ def quiz(
 
     data = r.json()
 
-    for idx, q in enumerate(data["items"], start=1):
-        typer.echo(f"\nQ{idx}: {q['question']}")
-
-        for i, opt in enumerate(q["options"]):
-            typer.echo(f"  {chr(65+i)}. {opt}")
-
-        typer.echo(
-            f"Answer: {chr(65+q['correct_index'])}"
-        )
+    for idx, q in enumerate(data["items"], 1):
+        typer.echo(f"Question {idx}: {q.question}")
+        for i, opt in enumerate(q.options):
+            typer.echo(f"  {chr(65+i)}: {opt}")
+        typer.echo(f"=> Correct Answer: {chr(65+q.correct_index)}")
+        typer.echo(f"=> Explanation: {q.explanation}")
+        typer.echo("-" * 30)
 
 
 @app.command()
@@ -116,11 +114,13 @@ def flashcards(
     )
 
     data = r.json()
-
-    for idx, card in enumerate(data["cards"], start=1):
-        typer.echo(f"\n[{idx}] {card['front']}")
-        typer.echo(f"    -> {card['back']}")
-
+    for idx, card in enumerate(data["cards"], 1):
+        typer.echo(f"Card {idx}:")
+        typer.echo(f"  Front (Question): {card.front}")
+        typer.echo(f"  Back (Answer)   : {card.back}")
+        if card.hint:
+            typer.echo(f"  Hint            : {card.hint}")
+        typer.echo("-" * 30)
 
 if __name__ == "__main__":
     app()

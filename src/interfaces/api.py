@@ -109,14 +109,7 @@ def quiz(req: QuizRequest):
         count=req.count,
         k=req.k,
     )
-    for idx, q in enumerate(quiz_res.items, 1):
-        print(f"Question {idx}: {q.question}")
-        for i, opt in enumerate(q.options):
-            print(f"  {chr(65+i)}: {opt}")
-        print(f"=> Correct Answer: {chr(65+q.correct_index)}")
-        print(f"=> Explanation: {q.explanation}")
-        print("-" * 30)
-
+    return quiz_res
 
 @app.post("/flashcard", response_model=FlashcardSet)
 def flashcard(req: FlashcardsRequest):
@@ -127,10 +120,4 @@ def flashcard(req: FlashcardsRequest):
         count=req.count,
         k=req.k,
     )
-    for idx, card in enumerate(flash_res.cards, 1):
-        print(f"Card {idx}:")
-        print(f"  Front (Question): {card.front}")
-        print(f"  Back (Answer)   : {card.back}")
-        if card.hint:
-            print(f"  Hint            : {card.hint}")
-        print("-" * 30)
+    return flash_res
