@@ -75,7 +75,17 @@ def get_llm():
     else:
         raise ValueError(f"Provider {provider} is not supported.")
 
+import base64
+import mimetypes
 
+def image_to_data_uri(path):
+    mime, _ = mimetypes.guess_type(path)
+    mime = mime or "image/png"
+
+    with open(path, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
+
+    return f"data:{mime};base64,{encoded}"
 
 def invoke_llm(prompt, image_paths=None):
     if settings.llm_provider == "llamacpp":
@@ -99,7 +109,7 @@ def invoke_llm(prompt, image_paths=None):
                 {
                     "type": "image_url",
                     "image_url": {
-                        "url": f"file://{path}"
+                        "url": image_to_data_uri(path)
                     }
                 }
             )
