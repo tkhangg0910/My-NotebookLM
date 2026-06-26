@@ -63,6 +63,7 @@ def _extract_page_images(path):
 
     with pymupdf.open(str(path)) as pdf:
         for page_idx in range(len(pdf)):
+            page = pdf[page_idx]
             page_number = page_idx + 1
 
             image_path = (
