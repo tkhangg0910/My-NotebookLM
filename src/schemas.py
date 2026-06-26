@@ -8,6 +8,7 @@ class ChunkMetadata(BaseModel):
     page: int
     chunk_id: str
     section: str | None = None
+    page_image: str | None = None
     
 class RetrievedChunk(BaseModel):
     text: str

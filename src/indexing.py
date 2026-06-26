@@ -136,6 +136,7 @@ def build_chunks(pdf_paths, chunk_size=None, chunk_overlap=None, chunker=None):
             page=chunk.metadata["page"],
             chunk_id=_chunk_id(doc_id, chunk.metadata["page"], idx),
             section=chunk.metadata.get("section"),
+            page_image=chunk.metadata.get("page_image"),
         )
         chunk.metadata = meta.model_dump()
     return chunks, all_page_images
